@@ -15,9 +15,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DatingAppCon"));
 });
 
+// Adding CORS
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.UseCors(options =>
+{
+    options.AllowAnyHeader();
+    options.AllowAnyMethod(); // get, post, put etc..
+    options.WithOrigins("http://localhost:4200", "https://localhost:4200");
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
