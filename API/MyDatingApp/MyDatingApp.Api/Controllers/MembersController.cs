@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDatingApp.Api.Data;
@@ -6,9 +6,8 @@ using MyDatingApp.Api.Entities;
 
 namespace MyDatingApp.Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MembersController : ControllerBase
+    
+    public class MembersController : BaseApiController
     {
         private readonly ApplicationDbContext _context;
         public MembersController(ApplicationDbContext context)
@@ -16,6 +15,7 @@ namespace MyDatingApp.Api.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpGet("getallmembers")]
         public async Task<ActionResult<IReadOnlyList<AppUser>>> GetMembers()
         {
