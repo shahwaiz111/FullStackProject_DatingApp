@@ -15,7 +15,7 @@ namespace MyDatingApp.Api.Controllers
             _context = context;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("getallmembers")]
         public async Task<ActionResult<IReadOnlyList<AppUser>>> GetMembers()
         {

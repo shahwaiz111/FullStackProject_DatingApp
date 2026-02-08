@@ -1,16 +1,7 @@
-<div class="card bg-base-100 w-1/2 mx-auto p-10 mt-10 shadow-xl">
-    <h1 class="text-red-500 text-3xl">{{title()}}</h1>
-    <ul class="list">
-    @for (member of members; track $index){
-        <li class="list-row items-center">
-            <img src="/user.jpg" alt="user avatar" class="size-12 rounded-box">
-            <div>
-                {{member.displayName}}
-            </div>
-        </li>
-    }
-</ul>
-</div>
+<app-nav></app-nav>
+
+<!-- <app-home [membersFromApp]="members"></app-home> -->
+<app-home></app-home>
 
 
 
