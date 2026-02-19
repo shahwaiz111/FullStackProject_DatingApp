@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyDatingApp.Api.Data;
 using MyDatingApp.Api.Interfaces;
+using MyDatingApp.Api.Middleware;
 using MyDatingApp.Api.Services;
 using System.Text;
 
@@ -39,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors(options =>
 {
