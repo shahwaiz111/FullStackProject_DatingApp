@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Visual Studio Cache & Junk
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+CopilotIndices/
+semantic.db
+.dtbcache.v2

@@ -1,0 +1,41 @@
+﻿[
+  {
+    "Id": "1",
+    "Email": "ron@test.com",
+    "Gender": "Male",
+    "DateOfBirth": "1992-07-21",
+    "DisplayName": "Ron",
+    "Created": "2021-06-11",
+    "LastActive": "2023-07-22",
+    "Description": "Hello how are you! what you are doing..",
+    "City": "Tokyo",
+    "Country": "Japan",
+    "ImageUrl": "images/user1.jpg"
+  },
+  {
+    "Id": "2",
+    "Email": "dean@test.com",
+    "Gender": "Male",
+    "DateOfBirth": "1993-02-21",
+    "DisplayName": "Dean",
+    "Created": "2022-06-11",
+    "LastActive": "2024-02-11",
+    "Description": "Hello how are you! what you are doing..",
+    "City": "Newyork",
+    "Country": "USA",
+    "ImageUrl": "images/user1.jpg"
+  },
+  {
+    "Id": "3",
+    "Email": "roman@test.com",
+    "Gender": "Male",
+    "DateOfBirth": "1982-03-21",
+    "DisplayName": "Roman",
+    "Created": "2020-03-21",
+    "LastActive": "2022-04-22",
+    "Description": "Hello how are you! what you are doing..",
+    "City": "Toronto",
+    "Country": "Canada",
+    "ImageUrl": "images/user1.jpg"
+  }
+]
