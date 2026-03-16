@@ -31,7 +31,7 @@
             @if (accountService.currentUser(); as user) {
                 <div class="dropdown">
                 <div tabindex="0" role="button" class="flex items-center text-white text-xl gap-3 cursor-pointer">
-                    <img src="/user.jpg" alt="user avatar" class="w-10">
+                    <img [src]="user?.imageUrl || '/user.jpg'" alt="user avatar" class="w-10">
                     <span>{{user.displayName}}</span>
                 </div>
                 <ul tabindex="-1" class="dropdown-content dropdown-end menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">

@@ -9,7 +9,7 @@
         public required byte[] PasswordHash { get; set; }
         public required byte[] PasswordSalt { get; set; }
 
-        // Nav property
+        // Nav property -- 1 user related to 1 member..
         public Member Member { get; set; } = null!;
     }
 }

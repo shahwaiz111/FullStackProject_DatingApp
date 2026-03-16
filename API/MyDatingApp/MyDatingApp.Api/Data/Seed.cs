@@ -11,8 +11,11 @@ namespace MyDatingApp.Api.Data
     {
         public static async Task SeedUsers(ApplicationDbContext context)
         {
-            Console.WriteLine("seed method running..");
-            //if (await context.Users.AnyAsync()) return;
+            // Seed Data into Database..
+
+            //Console.WriteLine("seed method running..");
+            
+            if (await context.Users.AnyAsync()) return;
             var memberData = await File.ReadAllTextAsync("Data/UserDataSeed.json");
             
             // Deserialize into C# obj
@@ -22,12 +25,13 @@ namespace MyDatingApp.Api.Data
                 Console.WriteLine("No members in seed data");
                 return;
             }
-            using var hmac = new HMACSHA512();
+            
 
             foreach ( var member in members )
             {
+                using var hmac = new HMACSHA512();
                 var user = new AppUser
-                {
+                {    
                     Id = member.Id,
                     Email = member.Email,
                     DisplayName = member.DisplayName,

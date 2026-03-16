@@ -75,6 +75,7 @@ var services = scope.ServiceProvider;
 
 try
 {
+    // db access request..
     var context = services.GetRequiredService<ApplicationDbContext>();
     await context.Database.MigrateAsync();
     await Seed.SeedUsers(context);
