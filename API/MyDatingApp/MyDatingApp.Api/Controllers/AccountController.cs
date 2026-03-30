@@ -51,7 +51,8 @@ namespace MyDatingApp.Api.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _context.Users.SingleOrDefaultAsync(x=>x.Email == loginDto.Email); 
+            //var user = await _context.Users.SingleOrDefaultAsync(x=>x.Email == loginDto.Email); 
+            var user = await _context.Users.Include(x => x.Member).SingleOrDefaultAsync(x => x.Email == loginDto.Email); 
             if (user == null)
             {
                 return Unauthorized("invalid email address");
@@ -71,7 +72,7 @@ namespace MyDatingApp.Api.Controllers
                 Id = user.Id,
                 DisplayName = user.DisplayName,
                 Email = user.Email,
-                ImageUrl = user.ImageUrl,
+                ImageUrl = user.Member.ImageUrl,
                 Token = _tokenService.CreateToken(user)
 
             };

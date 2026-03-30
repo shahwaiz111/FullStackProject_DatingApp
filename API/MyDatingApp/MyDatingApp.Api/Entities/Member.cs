@@ -19,7 +19,7 @@ namespace MyDatingApp.Api.Entities
         // Navigation property '1 user is related to 1 member'..
 
         [JsonIgnore]
-        [ForeignKey(nameof(Id))]
+        [ForeignKey(nameof(Id))]    
         public AppUser User { get; set; } = null!;
 
         [JsonIgnore]
