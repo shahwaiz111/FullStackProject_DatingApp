@@ -3,6 +3,7 @@ import {FormsModule} from '@angular/forms'
 import { AccountService } from '../../core/services/account-service';
 import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import { themes } from '../theme';
+import { BusyService } from '../../core/services/busy-service';
 
 
 @Component({
@@ -16,6 +17,7 @@ export class Nav implements OnInit {
   
 
   protected accountService = inject(AccountService)
+  protected busyService = inject(BusyService);
   // property to hold form inputs
   protected creds:any={}
   // protected loggedIn = signal(false)

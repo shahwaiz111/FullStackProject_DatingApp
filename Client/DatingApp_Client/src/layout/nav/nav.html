@@ -29,6 +29,9 @@
 
         </nav>
 
+        @if(busyService.busyRequestCount() > 0){
+            <span class="loading loading-spinner text-accent"></span>
+        }
 
         <div class="dropdown ml-160 dropdown-end">
             <button tabindex="1"
@@ -57,7 +60,7 @@
                 </div>
                 <ul tabindex="-1"
                     class="dropdown-content dropdown-end menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                    <li><a>Edit Profile</a></li>
+                    <li><a routerLink="/member/{{user.id}}">Edit Profile</a></li>
                     <li><a (click)="logout()">Logout</a></li>
                 </ul>
             </div>

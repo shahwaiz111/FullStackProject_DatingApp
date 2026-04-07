@@ -13,6 +13,7 @@ export const memberResolver: ResolveFn<Member> = (route, state) => {
     router.navigateByUrl('/not-found')
     return EMPTY;
   }
+  // when we activate member detail route thats when we're calling our member service getMember method..
 
   return memberService.getMember(memberId);
 };
