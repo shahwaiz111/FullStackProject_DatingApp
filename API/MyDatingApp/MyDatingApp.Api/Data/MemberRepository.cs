@@ -22,6 +22,11 @@ namespace MyDatingApp.Api.Data
             return member;
         }
 
+        public async Task<Member?> GetMemberForUpdate(string id)
+        {
+            return await context.Members.Include(x=>x.User).Include(x=>x.Photos). SingleOrDefaultAsync(x => x.Id == id);
+        }
+
         public async Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId)
         {
             return await context.Members.Where(x => x.Id == memberId).SelectMany(x=>x.Photos).ToListAsync();

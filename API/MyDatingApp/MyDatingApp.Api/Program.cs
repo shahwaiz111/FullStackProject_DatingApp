@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyDatingApp.Api.Data;
+using MyDatingApp.Api.Helpers;
 using MyDatingApp.Api.Interfaces;
 using MyDatingApp.Api.Middleware;
 using MyDatingApp.Api.Services;
@@ -26,7 +27,11 @@ builder.Services.AddCors();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
