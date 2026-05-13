@@ -1,10 +1,65 @@
 <div class="card bg-base-100 w-1/2 mx-auto flex flex-col p-6 rounded-lg shadow-lg">
     <div class="card-title justify-center text-3xl text-primary">Sign up</div>
     <div class="card-body w-full">
-        <form #registerForm="ngForm" class="flex flex-col gap-4 w-full" (ngSubmit)="register()">
-            <input type="text" class="input w-full" name="email" [(ngModel)]="creds.email" placeholder="Email">
-            <input type="text" class="input w-full" name="displayName" [(ngModel)]="creds.displayName" placeholder="Display Name">
-            <input type="password" class="input w-full" name="password" [(ngModel)]="creds.password" placeholder="Password">
+        
+        <ul class="steps">
+            <li class="step step-primary">Credentials</li>
+            <li class="step" [class.step-primary]="currentStep() === 2">Profile</li>
+        </ul>
+
+        @if (currentStep() === 1){
+             <form [formGroup]="credentialsForm" class="flex flex-col gap-4 w-full steps">
+                <!--Much cleaner way.. we've got a central place now where we can provide validation and so on..-->
+            <app-text-input class="mt-2" label="Email" formControlName="email"></app-text-input>
+            <app-text-input label="Display Name" formControlName="displayName"></app-text-input>
+            <app-text-input label="Password" formControlName="password" type="password"></app-text-input>
+            <app-text-input label="Confirm Password" formControlName="confirmPassword" type="password"></app-text-input>
+            <div class="flex items-center justify-end gap-3">
+                <button (click)="cancel()" type="button" class="btn">Cancel</button>
+                <button [disabled]="!credentialsForm.valid" (click)="nextStep()" class="btn btn-primary" type="button">Next</button>
+            </div>
+        </form>
+        }
+        
+        @if (currentStep() === 2){
+            <form [formGroup]="profileForm" class="flex flex-col w-full gap-4 steps">
+                <!-- <div>Profile form goes here..</div> -->
+                <app-text-input class="mt-2" label="Gender" formControlName="gender"></app-text-input>
+                <app-text-input [maxDate]="getMaxDate()" type="date" label="Date of Birth" formControlName="dateOfBirth"></app-text-input>
+                <app-text-input label="City" formControlName="city"></app-text-input>
+                <app-text-input label="Country" formControlName="country"></app-text-input>
+                <div class="flex items-center justify-end gap-3">
+                <button (click)="prevStep()" type="button" class="btn">Back</button>
+                <button [disabled]="!profileForm.valid" (click)="register()" class="btn btn-primary" type="button">Register</button>
+            </div>
+            </form>
+        }
+            
+
+            
+            <!-- <label class="floating-label text-left">
+                <span>Display Name</span>
+                <input [class.input-error]="registerForm.controls['displayName'].invalid && registerForm.controls['displayName'].touched" type="text" class="input w-full" formControlName="displayName" placeholder="Display name">
+                @if(registerForm.controls['displayName'].invalid && registerForm.controls['displayName'].touched){
+                    <div class="text-error">Display name is required.</div>
+                    
+                }
+            </label> -->
+
+            
+
+            <!-- <label class="floating-label">
+                <span>Password</span>
+                <input type="password" class="input w-full" formControlName="password" placeholder="Password">
+            </label> -->
+            <!-- <label class="floating-label">
+                <span>Confirm Password</span>
+                <input type="password" class="input w-full" formControlName="confirmPassword" placeholder="Confirm Password">
+            </label> -->
+
+            
+            <!-- <input type="text" class="input w-full" name="displayName" [(ngModel)]="creds.displayName" placeholder="Display Name">
+            <input type="password" class="input w-full" name="password" [(ngModel)]="creds.password" placeholder="Password"> -->
 
             <!-- <select class="select w-full">
                 <option disabled selected>Pick a member</option>
@@ -13,10 +68,24 @@
                 }
             </select> -->
 
-            <div class="flex items-center justify-end gap-3">
-                <button (click)="cancel()" type="button" class="btn">Cancel</button>
-                <button class="btn btn-primary" type="submit">Register</button>
-            </div>
-        </form>
+            
     </div>
+
+    @if(validationErrors().length > 0){
+        <div class="mt-5 bg-gray-200 rounded-2xl w-1/2 p-3 mx-auto">
+            <ul class="flex flex-col text-error space-y-1">
+                @for (error of validationErrors(); track $index) {
+                    <li>{{error}}</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- <div class="flex flex-col items-start px-3 w-full mockup-code text-lg">
+        <div>Creds value: {{credentialsForm.value | json}}</div>
+        <div>Creds status: {{credentialsForm.status| json}}</div>
+
+        <div>Profile value: {{profileForm.value | json}}</div>
+        <div>Profile status: {{profileForm.status| json}}</div>
+    </div> -->
 </div>
