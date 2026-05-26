@@ -1,4 +1,5 @@
 ﻿using MyDatingApp.Api.Entities;
+using MyDatingApp.Api.Helpers;
 
 namespace MyDatingApp.Api.Interfaces
 {
@@ -6,7 +7,7 @@ namespace MyDatingApp.Api.Interfaces
     {
         void Update(Member member);
         Task<bool> SaveAllAsync();
-        Task<IReadOnlyList<Member>> GetMemberAsync();
+        Task<PaginatedResult<Member>> GetMemberAsync(MemberParams memberParams);
         Task<Member> GetMemberByIdAsync(string id);
         Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId);
         Task<Member?> GetMemberForUpdate(string id);

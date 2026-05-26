@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MyDatingApp.Api.Data;
 using MyDatingApp.Api.DTOs;
 using MyDatingApp.Api.Entities;
+using MyDatingApp.Api.Helpers;
 using MyDatingApp.Api.Interfaces;
 using MyDatingApp.Api.Services;
 using System.Security.Claims;
@@ -23,9 +24,10 @@ namespace MyDatingApp.Api.Controllers
 
         
         [HttpGet("getallmembers")]
-        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
+        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers([FromQuery] MemberParams memberParams)
         {
-            return Ok(await _memberRepository.GetMemberAsync());
+            //memberParams.CurrentMemberId = User.id
+            return Ok(await _memberRepository.GetMemberAsync(memberParams));
         }
 
         [HttpGet("getmemberbyid/{id}")]
