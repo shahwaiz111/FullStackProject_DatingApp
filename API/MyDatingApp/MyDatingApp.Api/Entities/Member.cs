@@ -25,5 +25,13 @@ namespace MyDatingApp.Api.Entities
         [JsonIgnore]
         public List<Photo> Photos { get; set; } = [];
 
+        // that is going to represent a list of users that are liked by other users..
+        [JsonIgnore]
+        public List<MemberLike> LikedByMembers { get; set; } = [];
+
+        // so it is going to be the list of users the current user likes.. 
+        [JsonIgnore]
+        public List<MemberLike> LikedMembers { get; set; } = [];
+
     }
 }

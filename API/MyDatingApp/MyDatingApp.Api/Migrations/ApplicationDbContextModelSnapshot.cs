@@ -48,7 +48,7 @@ namespace MyDatingApp.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>
@@ -89,7 +89,22 @@ namespace MyDatingApp.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Members", (string)null);
+                    b.ToTable("Members");
+                });
+
+            modelBuilder.Entity("MyDatingApp.Api.Entities.MemberLike", b =>
+                {
+                    b.Property<string>("SourceMemberId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TargetMemberId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SourceMemberId", "TargetMemberId");
+
+                    b.HasIndex("TargetMemberId");
+
+                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("MyDatingApp.Api.Entities.Photo", b =>
@@ -115,7 +130,7 @@ namespace MyDatingApp.Api.Migrations
 
                     b.HasIndex("MemberId");
 
-                    b.ToTable("Photos", (string)null);
+                    b.ToTable("Photos");
                 });
 
             modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>
@@ -129,10 +144,29 @@ namespace MyDatingApp.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MyDatingApp.Api.Entities.MemberLike", b =>
+                {
+                    b.HasOne("MyDatingApp.Api.Entities.Member", "SourceMember")
+                        .WithMany("LikedMembers")
+                        .HasForeignKey("SourceMemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyDatingApp.Api.Entities.Member", "TargetMember")
+                        .WithMany("LikedByMembers")
+                        .HasForeignKey("TargetMemberId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("SourceMember");
+
+                    b.Navigation("TargetMember");
+                });
+
             modelBuilder.Entity("MyDatingApp.Api.Entities.Photo", b =>
                 {
                     b.HasOne("MyDatingApp.Api.Entities.Member", "Member")
-                        .WithMany()
+                        .WithMany("Photos")
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -144,6 +178,15 @@ namespace MyDatingApp.Api.Migrations
                 {
                     b.Navigation("Member")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>
+                {
+                    b.Navigation("LikedByMembers");
+
+                    b.Navigation("LikedMembers");
+
+                    b.Navigation("Photos");
                 });
 #pragma warning restore 612, 618
         }

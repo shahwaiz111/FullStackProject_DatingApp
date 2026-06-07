@@ -4,6 +4,7 @@ import { Nav } from "../layout/nav/nav";
 import { AccountService } from '../core/services/account-service';
 import { Router, RouterOutlet } from '@angular/router';
 import { NgClass } from '@angular/common';
+import { LikesService } from '../core/services/likes-service';
 
 
 
@@ -18,6 +19,7 @@ export class App implements OnInit {
   protected router = inject(Router);
   // Angular DI
   private http = inject(HttpClient)
+  private likeService = inject(LikesService);
   protected readonly title = signal('Dating App');
   // protected members:any;
 
@@ -33,11 +35,13 @@ export class App implements OnInit {
 
   setCurrentUser(){
     const userString = localStorage.getItem('user');
+    
     if (!userString){
       return
     }
     const user = JSON.parse(userString);
     this.accountService.currentUser.set(user);
+    this.likeService.getLikeIds();
   }
 
 
