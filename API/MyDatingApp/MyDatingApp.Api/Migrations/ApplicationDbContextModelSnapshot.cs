@@ -107,6 +107,44 @@ namespace MyDatingApp.Api.Migrations
                     b.ToTable("Likes");
                 });
 
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Message", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateRead")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("MessageSent")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("RecipientDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("SenderDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("MyDatingApp.Api.Entities.Photo", b =>
                 {
                     b.Property<int>("Id")
@@ -163,6 +201,25 @@ namespace MyDatingApp.Api.Migrations
                     b.Navigation("TargetMember");
                 });
 
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Message", b =>
+                {
+                    b.HasOne("MyDatingApp.Api.Entities.Member", "Recipient")
+                        .WithMany("MessagesReceived")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MyDatingApp.Api.Entities.Member", "Sender")
+                        .WithMany("MessagesSent")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("MyDatingApp.Api.Entities.Photo", b =>
                 {
                     b.HasOne("MyDatingApp.Api.Entities.Member", "Member")
@@ -185,6 +242,10 @@ namespace MyDatingApp.Api.Migrations
                     b.Navigation("LikedByMembers");
 
                     b.Navigation("LikedMembers");
+
+                    b.Navigation("MessagesReceived");
+
+                    b.Navigation("MessagesSent");
 
                     b.Navigation("Photos");
                 });

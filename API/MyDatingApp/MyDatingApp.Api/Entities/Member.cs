@@ -33,5 +33,10 @@ namespace MyDatingApp.Api.Entities
         [JsonIgnore]
         public List<MemberLike> LikedMembers { get; set; } = [];
 
+        [JsonIgnore]
+        public List<Message> MessagesSent { get; set; } = [];
+        [JsonIgnore]
+        public List<Message> MessagesReceived { get; set; } = [];
+
     }
 }
