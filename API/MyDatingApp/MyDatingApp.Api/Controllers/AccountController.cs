@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDatingApp.Api.Data;
 using MyDatingApp.Api.DTOs;
@@ -11,30 +12,33 @@ namespace MyDatingApp.Api.Controllers
 {
     public class AccountController : BaseApiController
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
         private readonly ITokenService _tokenService;
-        public AccountController(ApplicationDbContext context, ITokenService tokenService)
+        private readonly UserManager<AppUser> _userManager;
+        private readonly ApplicationDbContext _context;
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, ApplicationDbContext context)
         {
-            _context = context;
             _tokenService = tokenService;
+            _userManager = userManager;
+            _context = context;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
-            if (await EmailExists (registerDto.Email))
-            {
-                return BadRequest("Email taken");
-            }
-            var hmac = new HMACSHA512();
+            //if (await EmailExists (registerDto.Email))
+            //{
+            //    return BadRequest("Email taken");
+            //}
+            //var hmac = new HMACSHA512();
 
             var user = new AppUser
             {
                 DisplayName = registerDto.DisplayName,
                 Email = registerDto.Email,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key,
-
+                //PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
+                //PasswordSalt = hmac.Key,
+                UserName = registerDto.Email,
                 Member = new Member
                 {
                     DisplayName = registerDto.DisplayName,
@@ -45,14 +49,26 @@ namespace MyDatingApp.Api.Controllers
                 }
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("identity", error.Description);
+                }
+
+                return ValidationProblem();
+            }
+            await _userManager.AddToRoleAsync(user, "Member");
+            await SetRefreshTokenCookie(user);
+            //await _context.SaveChangesAsync();
             return new UserDto
             {
                 Id = user.Id,
                 DisplayName = user.DisplayName,
                 Email = user.Email,
-                Token = _tokenService.CreateToken(user)
+                Token = await _tokenService.CreateToken(user)
 
             };
         }
@@ -61,37 +77,84 @@ namespace MyDatingApp.Api.Controllers
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             //var user = await _context.Users.SingleOrDefaultAsync(x=>x.Email == loginDto.Email); 
-            var user = await _context.Users.Include(x => x.Member).SingleOrDefaultAsync(x => x.Email == loginDto.Email); 
+            var user = await _context.Users.Include(x => x.Member).SingleOrDefaultAsync(x => x.Email == loginDto.Email);
+
             if (user == null)
             {
-                return Unauthorized("invalid email address");
+                return Unauthorized("Invalid email address");
             }
-            var hmac = new HMACSHA512(user.PasswordSalt);
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
-            for (var i = 0; i < computedHash.Length; i++)
-            {
-                if (computedHash[i] != user.PasswordHash[i])
-                {
-                    return Unauthorized("invalid password");
-                }
-            }
+            var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+
+            if (!result) return Unauthorized("Invalid password");
+            await SetRefreshTokenCookie(user);
+            //var hmac = new HMACSHA512(user.PasswordSalt);
+            //var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+
+            //for (var i = 0; i < computedHash.Length; i++)
+            //{
+            //    if (computedHash[i] != user.PasswordHash[i])
+            //    {
+            //        return Unauthorized("invalid password");
+            //    }
+            //}
+            //Console.WriteLine(user.Member == null);
             return new UserDto
             {
                 Id = user.Id,
                 DisplayName = user.DisplayName,
                 Email = user.Email,
-                ImageUrl = user.Member.ImageUrl,
-                Token = _tokenService.CreateToken(user)
+                ImageUrl = user.Member?.ImageUrl,
+                Token = await _tokenService.CreateToken(user)
 
             };
 
         }
 
-        private async Task<bool> EmailExists(string email)
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<UserDto>> RefreshToken()
         {
-            return await _context.Users.AnyAsync(x=>x.Email.ToLower() == email.ToLower());
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (refreshToken == null) return NoContent();
 
+            var user = await _userManager.Users.Include(x=>x.Member).FirstOrDefaultAsync(x => x.RefreshToken == refreshToken && x.RefreshTokenExpiry > DateTime.UtcNow);
+
+            if (user == null) return Unauthorized();
+            await SetRefreshTokenCookie(user);
+            return new UserDto
+            {
+                Id = user.Id,
+                DisplayName = user.DisplayName,
+                Email = user.Email,
+                ImageUrl = user.Member?.ImageUrl,
+                Token = await _tokenService.CreateToken(user)
+
+            };
         }
+
+        private async Task SetRefreshTokenCookie(AppUser user)
+        {
+            var refreshToken = _tokenService.GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+        }
+
     }
-}
+
+        //private async Task<bool> EmailExists(string email)
+        //{
+        //    return await _context.Users.AnyAsync(x=>x.Email!.ToLower() == email.ToLower());
+
+        //}
+    }
+

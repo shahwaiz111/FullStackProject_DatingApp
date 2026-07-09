@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MyDatingApp.Api.DTOs;
 using MyDatingApp.Api.Entities;
 using System.Security.Cryptography;
@@ -9,13 +10,13 @@ namespace MyDatingApp.Api.Data
 {
     public class Seed
     {
-        public static async Task SeedUsers(ApplicationDbContext context)
+        public static async Task SeedUsers(UserManager<AppUser> userManager, ApplicationDbContext context)
         {
             // Seed Data into Database..
 
             //Console.WriteLine("seed method running..");
             
-            if (await context.Users.AnyAsync()) return;
+            if (await userManager.Users.AnyAsync()) return;
             var memberData = await File.ReadAllTextAsync("Data/UserDataSeed.json");
             
             // Deserialize into C# obj
@@ -29,15 +30,16 @@ namespace MyDatingApp.Api.Data
 
             foreach ( var member in members )
             {
-                using var hmac = new HMACSHA512();
+                //using var hmac = new HMACSHA512();
                 var user = new AppUser
                 {    
                     Id = member.Id,
                     Email = member.Email,
+                    UserName = member.Email,
                     DisplayName = member.DisplayName,
                     ImageUrl = member.ImageUrl,
-                    PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd")),
-                    PasswordSalt = hmac.Key,
+                    //PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd")),
+                    //PasswordSalt = hmac.Key,
 
                     Member = new Member 
                     {
@@ -62,10 +64,26 @@ namespace MyDatingApp.Api.Data
                         MemberId = member.Id
                     });
                 }
-                
-                context.Users.Add(user);
+                var result = await userManager.CreateAsync(user, "Pa$$w0rd");
+
+                if (!result.Succeeded)
+                {
+                    Console.WriteLine(result.Errors.First().Description);
+                }
+                await userManager.AddToRoleAsync(user, "Member");
+                //context.Users.Add(user);
             }
-            await context.SaveChangesAsync();
+
+            var admin = new AppUser
+            {
+                UserName = "admin@test.com",
+                Email = "admin@test.com",
+                DisplayName = "Admin"
+            };
+
+            await userManager.CreateAsync(admin, "Pa$$w0rd");
+            await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
+            //await context.SaveChangesAsync();
         }
     }
 }

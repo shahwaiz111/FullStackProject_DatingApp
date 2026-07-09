@@ -22,6 +22,7 @@
             <a routerLink="/members" routerLinkActive="text-accent">Members</a>
             <a routerLink="/lists" routerLinkActive="text-accent">Lists</a>
             <a routerLink="/messages" routerLinkActive="text-accent">Messages</a>
+            <a *appHasRole="['Admin', 'Moderator']" routerLink="/admin" routerLinkActive="text-accent">Admin</a>
 
             }
             <a routerLink="/errors" routerLinkActive="text-accent">Errors</a>
@@ -55,7 +56,7 @@
             @if (accountService.currentUser(); as user) {
             <div class="dropdown">
                 <div tabindex="0" role="button" class="flex items-center text-white text-xl gap-3 cursor-pointer">
-                    <img [src]="user?.imageUrl || '/user.jpg'" alt="user avatar" class="w-10 h-10">
+                    <img [src]="user?.imageUrl || '/user.jpg'" alt="user avatar" class="w-10 h-10 rounded-3xl">
                     <span>{{user.displayName}}</span>
                 </div>
                 <ul tabindex="-1"

@@ -13,6 +13,8 @@ import { MemberMessages } from '../features/members/member-messages/member-messa
 import { memberResolver } from '../features/members/member-resolver';
 import { MemberPhotos } from '../features/members/member-photos/member-photos';
 import { preventUnsavedChangesGuard } from '../core/guards/prevent-unsaved-changes-guard';
+import { Admin } from '../features/admin/admin';
+import { adminGuard } from '../core/guards/admin-guard';
 
 export const routes: Routes = [
     {
@@ -59,6 +61,11 @@ export const routes: Routes = [
     {
         path:'server-error',
         component:ServerError
+    },
+    {
+        path:'admin',
+        component:Admin,
+        canActivate:[adminGuard]
     },
 
     // root that doesnt exist

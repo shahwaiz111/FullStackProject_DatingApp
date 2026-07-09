@@ -1,20 +1,25 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using MyDatingApp.Api.Entities;
 using MyDatingApp.Api.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MyDatingApp.Api.Services
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
-        public TokenService(IConfiguration config)
+        private readonly UserManager<AppUser> _userManager;
+        public TokenService(IConfiguration config, UserManager<AppUser> userManager)
         {
             _config = config;
+            _userManager = userManager;
         }
-        public string CreateToken(AppUser user)
+        public async Task<string> CreateToken(AppUser user)
         {
             var tokenkey = _config["tokenkey"] ?? throw new Exception("cannot get token key");
             if (tokenkey.Length < 64)
@@ -27,9 +32,12 @@ namespace MyDatingApp.Api.Services
             // claims about the user
             var claims = new List<Claim>
             {
-                new (ClaimTypes.Email, user.Email),
+                new (ClaimTypes.Email, user.Email!),
                 new (ClaimTypes.NameIdentifier, user.Id)
             };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             // use to sign the Token
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -37,7 +45,7 @@ namespace MyDatingApp.Api.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddMinutes(7),
                 SigningCredentials = creds
             };
 
@@ -45,6 +53,12 @@ namespace MyDatingApp.Api.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            var randomBytes = RandomNumberGenerator.GetBytes(64);
+            return Convert.ToBase64String(randomBytes);
         }
     }
 }

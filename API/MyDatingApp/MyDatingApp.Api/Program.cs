@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyDatingApp.Api.Data;
+using MyDatingApp.Api.Entities;
 using MyDatingApp.Api.Helpers;
 using MyDatingApp.Api.Interfaces;
 using MyDatingApp.Api.Middleware;
@@ -39,6 +41,14 @@ builder.Services.AddScoped<LogUserActivity>();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
+// configuring Identity..
+builder.Services.AddIdentityCore<AppUser>(opt =>
+{
+    opt.Password.RequireNonAlphanumeric = false;
+    opt.User.RequireUniqueEmail = true;
+}).AddRoles<IdentityRole>() // will cover Role based auth 
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     var tokenkey = builder.Configuration["tokenkey"] ?? throw new Exception("Token key not found..");
@@ -50,6 +60,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateAudience = false
     };
 });
+
+builder.Services.AddAuthorizationBuilder().AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin")).AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator")); 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -59,7 +72,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(options =>
 {
     options.AllowAnyHeader();
-    options.AllowAnyMethod(); // get, post, put etc..
+    options.AllowAnyMethod();
+    options.AllowCredentials();// get, post, put etc..
     options.WithOrigins("http://localhost:4200", "https://localhost:4200");
 });
 
@@ -88,8 +102,9 @@ try
 {
     // db access request..
     var context = services.GetRequiredService<ApplicationDbContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
     await context.Database.MigrateAsync();
-    await Seed.SeedUsers(context);
+    await Seed.SeedUsers(userManager, context);
 }
 catch (Exception ex)
 {
