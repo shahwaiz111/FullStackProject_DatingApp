@@ -8,6 +8,7 @@ using MyDatingApp.Api.Helpers;
 using MyDatingApp.Api.Interfaces;
 using MyDatingApp.Api.Middleware;
 using MyDatingApp.Api.Services;
+using MyDatingApp.Api.SignalR;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +42,8 @@ builder.Services.AddScoped<LogUserActivity>();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<PresenceTracker>();
 // configuring Identity..
 builder.Services.AddIdentityCore<AppUser>(opt =>
 {
@@ -58,6 +61,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenkey)),
         ValidateIssuer = false,
         ValidateAudience = false
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -94,7 +111,9 @@ app.UseStaticFiles();
 
 app.MapControllers();
 
-//Console.WriteLine("about to run seeding..");
+app.MapHub<PresenceHub>("hubs/presence");
+app.MapHub<MessageHub>("hubs/messages");
+
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 
@@ -104,6 +123,7 @@ try
     var context = services.GetRequiredService<ApplicationDbContext>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     await context.Database.MigrateAsync();
+    await context.Connections.ExecuteDeleteAsync();
     await Seed.SeedUsers(userManager, context);
 }
 catch (Exception ex)

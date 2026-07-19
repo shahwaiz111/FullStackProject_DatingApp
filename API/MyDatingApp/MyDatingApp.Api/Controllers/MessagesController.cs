@@ -13,7 +13,7 @@ namespace MyDatingApp.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
         {
-            var sender = await memberRepository.GetMemberByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var sender = await memberRepository.GetMemberByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var recipient = await memberRepository.GetMemberByIdAsync(createMessageDto.RecipientID);
             if (recipient == null || sender.Id == null || sender.Id == createMessageDto.RecipientID) 
                 return BadRequest("cannot send this message");

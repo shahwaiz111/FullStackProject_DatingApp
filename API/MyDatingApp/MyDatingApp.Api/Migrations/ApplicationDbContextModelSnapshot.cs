@@ -253,6 +253,36 @@ namespace MyDatingApp.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Connection", b =>
+                {
+                    b.Property<string>("ConnectionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ConnectionId");
+
+                    b.HasIndex("GroupName");
+
+                    b.ToTable("Connections");
+                });
+
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Group", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("Groups");
+                });
+
             modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>
                 {
                     b.Property<string>("Id")
@@ -424,6 +454,17 @@ namespace MyDatingApp.Api.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Connection", b =>
+                {
+                    b.HasOne("MyDatingApp.Api.Entities.Group", "Group")
+                        .WithMany("Connections")
+                        .HasForeignKey("GroupName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>
                 {
                     b.HasOne("MyDatingApp.Api.Entities.AppUser", "User")
@@ -488,6 +529,11 @@ namespace MyDatingApp.Api.Migrations
                 {
                     b.Navigation("Member")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MyDatingApp.Api.Entities.Group", b =>
+                {
+                    b.Navigation("Connections");
                 });
 
             modelBuilder.Entity("MyDatingApp.Api.Entities.Member", b =>

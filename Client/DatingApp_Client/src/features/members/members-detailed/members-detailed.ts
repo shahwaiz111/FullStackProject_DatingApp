@@ -5,6 +5,7 @@ import { AsyncPipe } from '@angular/common';
 import { filter, Observable } from 'rxjs';
 import { Member } from '../../../types/member';
 import { AccountService } from '../../../core/services/account-service';
+import { PresenceService } from '../../../core/services/presence-service';
 
 @Component({
   selector: 'app-members-detailed',
@@ -17,6 +18,7 @@ export class MembersDetailed implements OnInit {
   protected memberService = inject(MemberService);
   private route = inject(ActivatedRoute);
   private accountService = inject(AccountService);
+  protected presenceService = inject(PresenceService);
   private router = inject(Router);
   // protected member$?: Observable<Member>;
   // protected member = signal<Member | undefined>(undefined);

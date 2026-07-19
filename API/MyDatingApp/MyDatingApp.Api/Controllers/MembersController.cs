@@ -26,7 +26,7 @@ namespace MyDatingApp.Api.Controllers
         [HttpGet("getallmembers")]
         public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers([FromQuery] MemberParams memberParams)
         {
-            //memberParams.CurrentMemberId = User.id
+            memberParams.CurrentMemberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return Ok(await _memberRepository.GetMemberAsync(memberParams));
         }
 

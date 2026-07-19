@@ -4,6 +4,8 @@ import { LoginCreds, RegisterCreds, User } from '../../types/user';
 import { tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LikesService } from './likes-service';
+import { PresenceService } from './presence-service';
+import { HubConnection, HubConnectionState } from '@microsoft/signalr';
 
 @Injectable({
   providedIn: 'root', // means it automatically going to be provided to our application as a whole..
@@ -12,6 +14,7 @@ export class AccountService {
     currentUser = signal<User | null>(null);  
     private http = inject(HttpClient)
     private likesService = inject(LikesService);
+    private presenceService = inject(PresenceService);
     // baseUrl = 'https://localhost:5001/api/'
     private baseUrl = environment.apiUrl;
 
@@ -59,13 +62,17 @@ export class AccountService {
       // localStorage.setItem('user', JSON.stringify(user))
       this.currentUser.set(user);
       this.likesService.getLikeIds();
+      if (this.presenceService.hubConnection?.state !== HubConnectionState.Connected){
+        this.presenceService.createHubConnection(user)
+      }
     }
 
     logout(){
       // localStorage.removeItem('user');
       localStorage.removeItem('filters');
       this.likesService.clearLikeIds();  
-      this.currentUser.set(null);  
+      this.presenceService.stopHubConnection();  
+      this.currentUser.set(null);
     }
 
     private getRolesFromToken(user:User):string[]{
