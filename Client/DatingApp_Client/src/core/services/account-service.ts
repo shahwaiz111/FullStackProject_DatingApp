@@ -69,10 +69,15 @@ export class AccountService {
 
     logout(){
       // localStorage.removeItem('user');
-      localStorage.removeItem('filters');
-      this.likesService.clearLikeIds();  
+      this.http.post(this.baseUrl + 'account/logout', {}, {withCredentials:true}).subscribe({
+        next: ()=>{
+          localStorage.removeItem('filters');
+        this.likesService.clearLikeIds();  
       this.presenceService.stopHubConnection();  
       this.currentUser.set(null);
+        }
+      })
+      
     }
 
     private getRolesFromToken(user:User):string[]{

@@ -14,12 +14,13 @@ namespace MyDatingApp.Api.Controllers
     [Authorize]
     public class MembersController : BaseApiController
     {
-        private readonly IMemberRepository _memberRepository;
+        //private readonly IMemberRepository _memberRepository;
         private readonly IPhotoService _photoService;
-        public MembersController(IMemberRepository memberRepository, IPhotoService photoService)
+        private readonly IUnitOfWork _uow;
+        public MembersController(IUnitOfWork uow, IPhotoService photoService)
         {
-            _memberRepository = memberRepository;
             _photoService = photoService;
+            _uow = uow;
         }
 
         
@@ -27,13 +28,13 @@ namespace MyDatingApp.Api.Controllers
         public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers([FromQuery] MemberParams memberParams)
         {
             memberParams.CurrentMemberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Ok(await _memberRepository.GetMemberAsync(memberParams));
+            return Ok(await _uow.MemberRepository.GetMemberAsync(memberParams));
         }
 
         [HttpGet("getmemberbyid/{id}")]
         public async Task<ActionResult<Member>> GetMemberById(string id)
         {
-            var member = await _memberRepository.GetMemberByIdAsync(id);
+            var member = await _uow.MemberRepository.GetMemberByIdAsync(id);
             if (member == null)
             {
                 return NotFound();
@@ -44,7 +45,7 @@ namespace MyDatingApp.Api.Controllers
         [HttpGet("{id}/photos")]
         public async Task<ActionResult<IReadOnlyList<Photo>>> GetMemberPhotos(string id)
         {
-            return Ok(await _memberRepository.GetPhotosForMemberAsync(id));
+            return Ok(await _uow.MemberRepository.GetPhotosForMemberAsync(id));
         }
 
         [HttpPut("updatemember")]
@@ -54,7 +55,7 @@ namespace MyDatingApp.Api.Controllers
             var memberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (memberId == null) return BadRequest("Oops - no id found in token..");
 
-            var member = await _memberRepository.GetMemberForUpdate(memberId);
+            var member = await _uow.MemberRepository.GetMemberForUpdate(memberId);
             if (member == null) return BadRequest("could not get member");
 
             member.DisplayName = memberUpdateDto.DisplayName ?? member.DisplayName;
@@ -64,8 +65,8 @@ namespace MyDatingApp.Api.Controllers
 
             member.User.DisplayName = memberUpdateDto.DisplayName ?? member.User.DisplayName;
 
-            _memberRepository.Update(member);
-            if (await _memberRepository.SaveAllAsync()) return NoContent();
+            _uow.MemberRepository.Update(member);
+            if (await _uow.Complete()) return NoContent();
             return BadRequest("Failed to update member");
         }
 
@@ -74,7 +75,7 @@ namespace MyDatingApp.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Photo>> AddPhoto(IFormFile file)
         {
-            var member = await _memberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var member = await _uow.MemberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (member == null) return BadRequest("cannot update member");
 
             var result = await _photoService.UploadPhotoAsync(file);
@@ -93,14 +94,14 @@ namespace MyDatingApp.Api.Controllers
             }
             member.Photos.Add(photo);
 
-            if (await _memberRepository.SaveAllAsync()) return photo;
+            if (await _uow.Complete()) return photo;
             return BadRequest("problem adding photo");
         }
 
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var member = await _memberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var member = await _uow.MemberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (member == null) return BadRequest("cannot get member from token");
 
             var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
@@ -111,14 +112,14 @@ namespace MyDatingApp.Api.Controllers
             member.ImageUrl = photo.Url;
             member.User.ImageUrl = photo.Url;
 
-            if (await _memberRepository.SaveAllAsync()) return NoContent();
+            if (await _uow.Complete()) return NoContent();
             return BadRequest("problem setting main photo");
         }
 
         [HttpDelete("delete-photo/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var member = await _memberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var member = await _uow.MemberRepository.GetMemberForUpdate(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (member == null) return BadRequest("cannot get member from token");
 
             var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
@@ -133,7 +134,7 @@ namespace MyDatingApp.Api.Controllers
             }
             
             member.Photos.Remove(photo);
-            if (await _memberRepository.SaveAllAsync()) return Ok();
+            if (await _uow.Complete()) return Ok();
             return BadRequest("problem deleting the photo");
         }
     }

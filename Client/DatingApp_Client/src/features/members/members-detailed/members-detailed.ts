@@ -6,6 +6,7 @@ import { filter, Observable } from 'rxjs';
 import { Member } from '../../../types/member';
 import { AccountService } from '../../../core/services/account-service';
 import { PresenceService } from '../../../core/services/presence-service';
+import { LikesService } from '../../../core/services/likes-service';
 
 @Component({
   selector: 'app-members-detailed',
@@ -19,15 +20,27 @@ export class MembersDetailed implements OnInit {
   private route = inject(ActivatedRoute);
   private accountService = inject(AccountService);
   protected presenceService = inject(PresenceService);
+  protected likeService = inject(LikesService);
   private router = inject(Router);
   // protected member$?: Observable<Member>;
   // protected member = signal<Member | undefined>(undefined);
   protected title = signal<string | undefined>('Profile')
-
-  // if this matches then we are working with current profile.. comparing current user id..
+  private routeId = signal<string | null>(null);
+  
+ 
+  protected hasLiked = computed(() => this.likeService.likeIds().includes(this.routeId()!)); 
+  
+   // if this matches then we are working with current profile.. comparing current user id..
   protected isCurrentUser = computed(()=>{
-      return this.accountService.currentUser()?.id === this.route.snapshot.paramMap.get('id');
-  })
+      // return this.accountService.currentUser()?.id === this.route.snapshot.paramMap.get('id');
+      return this.accountService.currentUser()?.id === this.routeId()
+  });
+  
+  constructor(){
+    this.route.paramMap.subscribe(params=>{
+      this.routeId.set(params.get('id'));
+    })
+  }
 
   ngOnInit(): void {
     // this.member$ = this.loadMember();

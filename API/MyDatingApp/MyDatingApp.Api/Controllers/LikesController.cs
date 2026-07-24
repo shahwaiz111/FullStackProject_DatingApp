@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace MyDatingApp.Api.Controllers
 {
-    public class LikesController(ILikesRepository likesRepository) : BaseApiController
+    public class LikesController(IUnitOfWork uow) : BaseApiController
     {
         [HttpPost("{targetMemberId}")]
         public async Task<ActionResult> ToggleLike(string targetMemberId)
@@ -14,7 +14,7 @@ namespace MyDatingApp.Api.Controllers
             var sourceMemberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (sourceMemberId == targetMemberId) return BadRequest("you cannot like yourself..");
 
-            var existingLike = await likesRepository.GetMemberLike(sourceMemberId, targetMemberId);
+            var existingLike = await uow.LikesRepository.GetMemberLike(sourceMemberId, targetMemberId);
 
             if (existingLike == null)
             {
@@ -24,13 +24,13 @@ namespace MyDatingApp.Api.Controllers
                     TargetMemberId = targetMemberId
                 };
 
-                likesRepository.AddLike(like);
+                uow.LikesRepository.AddLike(like);
             }
             else
             {
-                likesRepository.DeleteLike(existingLike);
+                uow.LikesRepository.DeleteLike(existingLike);
             }
-            if (await likesRepository.SaveAllChanges()) return Ok();
+            if (await uow.Complete()) return Ok();
 
             return BadRequest("Failed to update like.."); 
         }
@@ -38,14 +38,14 @@ namespace MyDatingApp.Api.Controllers
         [HttpGet("list")]
         public async Task<ActionResult<IReadOnlyList<string>>> GetCurrentMemberLikeIds()
         {
-            return Ok(await likesRepository.GetCurrentMemberLikeIds(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+            return Ok(await uow.LikesRepository.GetCurrentMemberLikeIds(User.FindFirstValue(ClaimTypes.NameIdentifier)));
         }
 
         [HttpGet]
         public async Task<ActionResult<PaginatedResult<Member>>> GetMemberLikes([FromQuery] LikeParams likeParams)
         {
             likeParams.MemberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var members = await likesRepository.GetMemberLikes(likeParams);
+            var members = await uow.LikesRepository.GetMemberLikes(likeParams);
 
             return Ok(members);
         }

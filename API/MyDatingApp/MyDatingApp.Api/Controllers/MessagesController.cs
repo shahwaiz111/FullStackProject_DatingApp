@@ -8,13 +8,13 @@ using System.Security.Claims;
 
 namespace MyDatingApp.Api.Controllers
 {
-    public class MessagesController(IMessageRepository messageRepository, IMemberRepository memberRepository) : BaseApiController
+    public class MessagesController(IUnitOfWork uow) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
         {
-                var sender = await memberRepository.GetMemberByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var recipient = await memberRepository.GetMemberByIdAsync(createMessageDto.RecipientID);
+                var sender = await uow.MemberRepository.GetMemberByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var recipient = await uow.MemberRepository.GetMemberByIdAsync(createMessageDto.RecipientID);
             if (recipient == null || sender.Id == null || sender.Id == createMessageDto.RecipientID) 
                 return BadRequest("cannot send this message");
 
@@ -24,9 +24,9 @@ namespace MyDatingApp.Api.Controllers
                 RecipientId = recipient.Id,
                 Content = createMessageDto.Content
             };
-            messageRepository.AddMessage(message);
+            uow.MessageRepository.AddMessage(message);
 
-            if (await messageRepository.SaveAllAsync()) return message.ToDto();
+            if (await uow.Complete()) return message.ToDto();
             return BadRequest("failed to send message"); 
         }
 
@@ -34,20 +34,20 @@ namespace MyDatingApp.Api.Controllers
         public async Task<ActionResult<PaginatedResult<MessageDto>>> GetMessagesByContainer([FromQuery] MessageParams messageParams)
         {
             messageParams.MemberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return await messageRepository.GetMessagesForMember(messageParams);
+            return await uow.MessageRepository.GetMessagesForMember(messageParams);
         }
 
         [HttpGet("thread/{recipientId}")]
         public async Task<ActionResult<IReadOnlyList<MessageDto>>> GetMessageThread(string recipientId)
         {
-            return Ok(await messageRepository.GetMessageThread(User.FindFirstValue(ClaimTypes.NameIdentifier), recipientId));
+            return Ok(await uow.MessageRepository.GetMessageThread(User.FindFirstValue(ClaimTypes.NameIdentifier), recipientId));
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteMessage(string id)
         {
             var memberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var message = await messageRepository.GetMessage(id);
+            var message = await uow.MessageRepository.GetMessage(id);
 
             if (message == null) return BadRequest("cannot delete this message");
 
@@ -57,9 +57,9 @@ namespace MyDatingApp.Api.Controllers
 
             if (message is {SenderDeleted:true, RecipientDeleted: true })
             {
-                messageRepository.DeleteMessage(message);
+                uow.MessageRepository.DeleteMessage(message);
             }
-            if (await messageRepository.SaveAllAsync()) return Ok();
+            if (await uow.Complete()) return Ok();
             return BadRequest("problem deleting the message"); 
         }
     }

@@ -57,9 +57,9 @@ namespace MyDatingApp.Api.Data
                     
             }
 
-        public async Task<bool> SaveAllChanges()
-        {
-            return await _context.SaveChangesAsync() > 0; 
-        }
+        //public async Task<bool> SaveAllChanges()
+        //{
+        //    return await _context.SaveChangesAsync() > 0; 
+        //}
     }
 }

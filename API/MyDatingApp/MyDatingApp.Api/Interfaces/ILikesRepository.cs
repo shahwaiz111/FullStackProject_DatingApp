@@ -13,7 +13,7 @@ namespace MyDatingApp.Api.Interfaces
         Task<IReadOnlyList<string>> GetCurrentMemberLikeIds(string memberId);
         void DeleteLike(MemberLike like);
         void AddLike(MemberLike like);
-        Task<bool> SaveAllChanges();
+        //Task<bool> SaveAllChanges();
 
     }
 }

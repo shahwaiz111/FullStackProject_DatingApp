@@ -5,6 +5,7 @@ import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import { themes } from '../theme';
 import { BusyService } from '../../core/services/busy-service';
 import { HasRole } from '../../shared/directives/has-role';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -24,6 +25,8 @@ export class Nav implements OnInit {
   // protected loggedIn = signal(false)
   protected selectedTheme = signal<string>(localStorage.getItem('theme') || 'light');
   protected themes = themes;
+  protected loading = signal(false);
+  protected toast = inject(ToastrService);
 
   ngOnInit(): void {
     document.documentElement.setAttribute('data-theme', this.selectedTheme());
@@ -37,17 +40,26 @@ export class Nav implements OnInit {
     if (elem) elem.blur();
   }
 
+  handleSelectUserItem(){
+    const elem = document.activeElement as HTMLDivElement;
+    if (elem) elem.blur();
+  }
+
   private router = inject(Router);
 
 
   login(){
     // console.log(this.creds);
+    this.loading.set(true);
     this.accountService.login(this.creds).subscribe({
       next: () => {
         // console.log(result);
         this.router.navigateByUrl('/members')
+        this.toast.success("Logged in successfully!")
+
       },
-      error: error => alert(error.message)
+      error: error => alert(error.message),
+      complete: ()=> this.loading.set(false)
     })
   }
 

@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDatingApp.Api.Data;
 using MyDatingApp.Api.DTOs;
 using MyDatingApp.Api.Entities;
 using MyDatingApp.Api.Interfaces;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -117,7 +119,7 @@ namespace MyDatingApp.Api.Controllers
             var refreshToken = Request.Cookies["refreshToken"];
             if (refreshToken == null) return NoContent();
 
-            var user = await _userManager.Users.Include(x=>x.Member).FirstOrDefaultAsync(x => x.RefreshToken == refreshToken && x.RefreshTokenExpiry > DateTime.UtcNow);
+            var user = await _userManager.Users.Include(x => x.Member).FirstOrDefaultAsync(x => x.RefreshToken == refreshToken && x.RefreshTokenExpiry > DateTime.UtcNow);
 
             if (user == null) return Unauthorized();
             await SetRefreshTokenCookie(user);
@@ -149,7 +151,16 @@ namespace MyDatingApp.Api.Controllers
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
 
-    }
+
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<ActionResult> Logout()
+        {
+            await _userManager.Users.Where(x => x.Id == User.FindFirstValue(ClaimTypes.NameIdentifier)).ExecuteUpdateAsync(setters => setters.SetProperty(x => x.RefreshToken, _ => null).SetProperty(x=>x.RefreshTokenExpiry, _=>null));
+            Response.Cookies.Delete("refreshToken");
+            return Ok();
+        }
 
         //private async Task<bool> EmailExists(string email)
         //{
@@ -158,3 +169,4 @@ namespace MyDatingApp.Api.Controllers
         //}
     }
 
+}
