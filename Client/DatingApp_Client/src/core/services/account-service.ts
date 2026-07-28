@@ -15,7 +15,6 @@ export class AccountService {
     private http = inject(HttpClient)
     private likesService = inject(LikesService);
     private presenceService = inject(PresenceService);
-    // baseUrl = 'https://localhost:5001/api/'
     private baseUrl = environment.apiUrl;
 
     register(creds:RegisterCreds){
